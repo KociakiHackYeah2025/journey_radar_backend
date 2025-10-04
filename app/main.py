@@ -1,0 +1,29 @@
+from fastapi import FastAPI
+from app.routers import auth, sync
+import os
+from app.database import synchronization
+from apscheduler.schedulers.background import BackgroundScheduler
+import pytz
+
+
+app = FastAPI()
+app.include_router(auth.router)
+app.include_router(sync.router)
+
+# Scheduler do automatycznego wywołania synchronizacji
+def start_scheduler():
+    scheduler = BackgroundScheduler(timezone=pytz.timezone("Europe/Warsaw"))
+    scheduler.add_job(synchronization, 'cron', hour=2, minute=0)
+    scheduler.start()
+    return scheduler
+
+start_scheduler()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, FastAPI!"}
+
+if __name__ == "__main__":
+    import uvicorn
+    PORT = int(os.environ.get("PORT", 3000))
+    uvicorn.run("main:app", host="0.0.0.0", port=PORT)

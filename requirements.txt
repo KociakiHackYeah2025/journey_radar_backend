@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-dotenv
+pydantic-settings
+bcrypt==4.0.1
+passlib[bcrypt]
+pydantic[email]
+python-jose[cryptography]
+apscheduler
+pytz
+jose
+requests
