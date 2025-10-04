@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, sync
+from app.routers import auth, sync, search
 import os
 from app.database import synchronization
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -9,6 +9,7 @@ import pytz
 app = FastAPI()
 app.include_router(auth.router)
 app.include_router(sync.router)
+app.include_router(search.router)
 
 # Scheduler do automatycznego wywołania synchronizacji
 def start_scheduler():
