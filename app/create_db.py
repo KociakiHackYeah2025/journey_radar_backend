@@ -1,7 +1,7 @@
 from app.database import Base, engine
-from app.models.user import User
-from app.models.place import Place  # jeśli masz też model Place
+from app.models import *
 
+print("Tworzenie tabel w bazie danych...")
 Base.metadata.create_all(bind=engine)
 
 print("Tabele utworzone!")
