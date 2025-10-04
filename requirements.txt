@@ -7,3 +7,4 @@ pydantic-settings
 bcrypt==4.0.1
 passlib[bcrypt]
 pydantic[email]
+python-jose[cryptography]
