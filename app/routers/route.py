@@ -38,8 +38,6 @@ def get_route_info(route_id: str, db: Session = Depends(get_db)):
             "stop_name": s.stop_name,
             "stop_lat": s.stop_lat,
             "stop_lon": s.stop_lon,
-            "arrival_time": arrival_time,
-            "departure_time": departure_time
         })
 
     return {

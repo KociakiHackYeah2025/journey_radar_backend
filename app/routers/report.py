@@ -40,14 +40,13 @@ class ReportCreate(BaseModel):
     user_id: int
     stop_id: int
     trip_id: str
-    boarded: bool
     created_at: Optional[datetime] = None
 
 @router.post("/report", tags=["Report"])
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     # Optionally validate user and stop existence
     user = db.query(User).filter(User.id == report.user_id).first()
-    stop = db.query(Stop).filter(Stop.stop_id == report.stop_id).first()
+    stop = db.query(Stop).filter(Stop.stop_id == str(report.stop_id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not stop:
@@ -56,7 +55,6 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
         user_id=report.user_id,
         stop_id=report.stop_id,
         trip_id=report.trip_id,
-        boarded=report.boarded,
         created_at=report.created_at or datetime.utcnow(),
         updated_at=datetime.utcnow()
     )

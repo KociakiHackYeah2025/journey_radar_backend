@@ -136,11 +136,13 @@ def search(
         all_stops_times = db.query(StopTime).filter(
             StopTime.trip_id == trip.trip_id
         ).order_by(StopTime.stop_sequence).all()
-        # Wyciągnij przystanki od from do to (włącznie)
+        # Wyciągnij przystanki od from do to (włącznie), czyli wszystkie pomiędzy
         stops_between = []
         if st_from and st_to:
+            start_seq = st_from.stop_sequence
+            end_seq = st_to.stop_sequence
             for st in all_stops_times:
-                if st.stop_sequence >= st_from.stop_sequence and st.stop_sequence <= st_to.stop_sequence:
+                if start_seq <= st.stop_sequence <= end_seq:
                     stop_obj = db.query(Stop).filter(Stop.stop_id == st.stop_id).first()
                     stops_between.append({
                         "stop_id": st.stop_id,
@@ -159,22 +161,8 @@ def search(
             "trip_id": trip.trip_id,
             "route_id": trip.route_id,
             "date": calendar_date.date,
-            "from_stop": {
-                "stop_id": from_stop_id,
-                "stop_name": from_stop_obj.stop_name,
-                "departure_time": st_from.departure_time if st_from else None,
-                "arrival_time": st_from.arrival_time if st_from else None,
-                "stop_sequence": st_from.stop_sequence if st_from else None
-            },
-            "to_stop": {
-                "stop_id": to_stop_id,
-                "stop_name": to_stop_obj.stop_name,
-                "departure_time": st_to.departure_time if st_to else None,
-                "arrival_time": st_to.arrival_time if st_to else None,
-                "stop_sequence": st_to.stop_sequence if st_to else None
-            },
             "stops": stops_between
         })
-    # Sortuj po czasie odjazdu
-    results_sorted = sorted(results, key=lambda x: x["from_stop"]["departure_time"] or "99:99:99")
+    # Sortuj po czasie odjazdu pierwszego przystanku w "stops"
+    results_sorted = sorted(results, key=lambda x: x["stops"][0]["departure_time"] if x["stops"] and x["stops"][0]["departure_time"] else "99:99:99")
     return results_sorted
