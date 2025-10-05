@@ -132,6 +132,29 @@ def search(
             continue
         st_from = next((st for st in stop_times_from if st.trip_id == trip.trip_id), None)
         st_to = next((st for st in stop_times_to if st.trip_id == trip.trip_id), None)
+        # Pobierz wszystkie stop_times dla tego tripa w kolejności
+        all_stops_times = db.query(StopTime).filter(
+            StopTime.trip_id == trip.trip_id
+        ).order_by(StopTime.stop_sequence).all()
+        # Wyciągnij przystanki od from do to (włącznie)
+        stops_between = []
+        if st_from and st_to:
+            for st in all_stops_times:
+                if st.stop_sequence >= st_from.stop_sequence and st.stop_sequence <= st_to.stop_sequence:
+                    stop_obj = db.query(Stop).filter(Stop.stop_id == st.stop_id).first()
+                    stops_between.append({
+                        "stop_id": st.stop_id,
+                        "stop_name": stop_obj.stop_name if stop_obj else None,
+                        "stop_lat": stop_obj.stop_lat if stop_obj else None,
+                        "stop_lon": stop_obj.stop_lon if stop_obj else None,
+                        "stop_desc": stop_obj.stop_desc if stop_obj else None,
+                        "arrival_time": st.arrival_time,
+                        "departure_time": st.departure_time,
+                        "stop_sequence": st.stop_sequence,
+                        "pickup_type": st.pickup_type,
+                        "drop_off_type": st.drop_off_type,
+                        "stop_headsign": st.stop_headsign
+                    })
         results.append({
             "trip_id": trip.trip_id,
             "route_id": trip.route_id,
@@ -149,7 +172,8 @@ def search(
                 "departure_time": st_to.departure_time if st_to else None,
                 "arrival_time": st_to.arrival_time if st_to else None,
                 "stop_sequence": st_to.stop_sequence if st_to else None
-            }
+            },
+            "stops": stops_between
         })
     # Sortuj po czasie odjazdu
     results_sorted = sorted(results, key=lambda x: x["from_stop"]["departure_time"] or "99:99:99")
