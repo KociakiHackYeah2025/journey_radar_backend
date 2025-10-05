@@ -55,21 +55,3 @@ def get_route_info(route_id: str, db: Session = Depends(get_db)):
         "stops": stops_data
     }
 
-@router.get("/route/{route_id}/delay", tags=["Route"])
-def route_delay(route_id: str, db: Session = Depends(get_db)):
-    # Pobierz wszystkie trip_id dla danej linii
-    trips = db.query(Trip).filter(Trip.route_id == route_id).all()
-    trip_ids = [t.trip_id for t in trips]
-    # Pobierz wszystkie reporty dla tych trip_id
-    reports = db.query(Report).filter(Report.trip_id.in_(trip_ids)).all() if trip_ids else []
-    delays = []
-    for r in reports:
-        if r.boarded_time and r.created_at:
-            delay = (r.boarded_time - r.created_at).total_seconds() // 60
-            delays.append(delay)
-    avg_delay = int(sum(delays) / len(delays)) if delays else None
-    return {
-        "route_id": route_id,
-        "avg_delay_minutes": avg_delay,
-        "reports_count": len(reports)
-    }

@@ -112,3 +112,4 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
         "points": getattr(current_user, "points", None),
         "created_at": getattr(current_user, "created_at", None),
     }
+    

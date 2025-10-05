@@ -11,12 +11,6 @@ from datetime import datetime
 
 router = APIRouter(tags=["Report"])
 
-class ReportCreate(BaseModel):
-    user_id: int
-    stop_id: int
-    boarded: bool
-    created_at: Optional[datetime] = None
-
 class RateReportRequest(BaseModel):
     helpful: bool
 
@@ -42,6 +36,12 @@ def rate_report(report_id: int, rate: RateReportRequest, db: Session = Depends(g
         "dislikes": report.dislikes
     }
 
+class ReportCreate(BaseModel):
+    user_id: int
+    stop_id: int
+    trip_id: str
+    boarded: bool
+    created_at: Optional[datetime] = None
 
 @router.post("/report", tags=["Report"])
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
@@ -55,6 +55,7 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     new_report = Report(
         user_id=report.user_id,
         stop_id=report.stop_id,
+        trip_id=report.trip_id,
         boarded=report.boarded,
         created_at=report.created_at or datetime.utcnow(),
         updated_at=datetime.utcnow()

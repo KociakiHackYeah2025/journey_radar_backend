@@ -9,6 +9,7 @@ class Report(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     stop_id = Column(String, ForeignKey("stops.stop_id"), nullable=False)
+    trip_id = Column(String, ForeignKey("trips.trip_id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     boarded = Column(Boolean, default=False, nullable=False)
@@ -18,3 +19,4 @@ class Report(Base):
 
     user = relationship("User", back_populates="reports")
     stop = relationship("Stop", back_populates="reports")
+    trip = relationship("Trip", back_populates="reports")

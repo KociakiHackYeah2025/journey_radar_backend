@@ -1,3 +1,4 @@
+from app.models.report import Report
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -66,3 +67,28 @@ def get_trip_info(trip_id: str, db: Session = Depends(get_db)):
         "stops": stops
     }
     return result
+
+
+@router.get("/trip/{trip_id}/delay", tags=["Trip"])
+def trip_delay(trip_id: str, db: Session = Depends(get_db)):
+    reports = db.query(Report).filter(Report.trip_id == trip_id, Report.boarded_time != None).all()
+    delays = []
+    for r in reports:
+        if r.boarded_time and r.created_at:
+            delay = (r.boarded_time - r.created_at).total_seconds() // 60
+            delays.append(delay)
+    avg_delay = int(sum(delays) / len(delays)) if delays else None
+    return {
+        "trip_id": trip_id,
+        "avg_delay_minutes": avg_delay,
+        "reports_count": len(reports),
+        "reports": [
+            {
+                "id": r.id,
+                "trip_id": r.trip_id,
+                "boarded_time": r.boarded_time,
+                "created_at": r.created_at,
+                "user_id": r.user_id,
+            } for r in reports
+        ]
+    }

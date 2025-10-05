@@ -18,3 +18,4 @@ class Trip(Base):
     # Relationships
     route = relationship("Route", back_populates="trips")
     stop_times = relationship("StopTime", back_populates="trip")
+    reports = relationship("Report", back_populates="trip")
