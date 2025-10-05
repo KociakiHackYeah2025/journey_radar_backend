@@ -1,3 +1,7 @@
+@router.get("/search_history_top")
+def search_history_top(db: Session = Depends(get_db)):
+    top_history = db.query(SearchHistory).order_by(SearchHistory.count.desc()).limit(100).all()
+    return [{"point_name": h.point_name, "count": h.count} for h in top_history]
 
 from fastapi import APIRouter, Query
 from datetime import datetime
@@ -8,6 +12,7 @@ from app.models.stop import Stop
 from app.models.stop_time import StopTime
 from app.models.calendar_date import CalendarDate
 from app.models.trip import Trip
+from app.models.search_history import SearchHistory
 from typing import List
 
 router = APIRouter()
@@ -27,6 +32,21 @@ def search(
     datetime_query: datetime = Query(..., alias="datetime"),
     db: Session = Depends(get_db)
 ):
+    # Update search history for 'from_stop'
+    from_history = db.query(SearchHistory).filter(SearchHistory.point_name == from_stop).first()
+    if from_history:
+        from_history.count += 1
+    else:
+        from_history = SearchHistory(point_name=from_stop, count=1)
+        db.add(from_history)
+    # Update search history for 'to_stop'
+    to_history = db.query(SearchHistory).filter(SearchHistory.point_name == to_stop).first()
+    if to_history:
+        to_history.count += 1
+    else:
+        to_history = SearchHistory(point_name=to_stop, count=1)
+        db.add(to_history)
+    db.commit()
     # Find stop_ids for from and to
     from_stops = db.query(Stop).filter(Stop.stop_name == from_stop).all()
     to_stops = db.query(Stop).filter(Stop.stop_name == to_stop).all()
