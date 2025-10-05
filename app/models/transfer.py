@@ -1,13 +1,12 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 class Transfer(Base):
     __tablename__ = "transfers"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    from_stop_id = Column(Integer, ForeignKey("stops.stop_id"), nullable=False)
-    to_stop_id = Column(Integer, ForeignKey("stops.stop_id"), nullable=False)
+    from_stop_id = Column(String, ForeignKey("stops.stop_id"), primary_key=True, index=True)
+    to_stop_id = Column(String, ForeignKey("stops.stop_id"), primary_key=True, index=True)
     transfer_type = Column(Integer, nullable=True)
     min_transfer_time = Column(Integer, nullable=True)
 

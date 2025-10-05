@@ -14,6 +14,7 @@ from .transfer import Transfer
 
 from .feed_info import FeedInfo
 from .report import Report
+from .search_history import SearchHistory
 
 __all__ = [
     "User",
@@ -27,5 +28,6 @@ __all__ = [
     "Shape",
     "Transfer",
     "FeedInfo",
-    "Report"
+    "Report",
+    "SearchHistory"
 ]

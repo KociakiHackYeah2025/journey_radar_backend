@@ -6,8 +6,8 @@ class Trip(Base):
     __tablename__ = "trips"
 
     trip_id = Column(String, primary_key=True, index=True)
-    route_id = Column(String, ForeignKey("routes.route_id"), nullable=False)
-    service_id = Column(String, nullable=False)
+    route_id = Column(String, ForeignKey("routes.route_id"), nullable=True)
+    service_id = Column(String, nullable=True)
     trip_headsign = Column(String, nullable=True)
     trip_short_name = Column(String, nullable=True)
     direction_id = Column(Integer, nullable=True)

@@ -4,7 +4,6 @@ from app.database import Base
 class CalendarDate(Base):
     __tablename__ = "calendar_dates"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    service_id = Column(String, nullable=False)
-    date = Column(Date, nullable=False)
-    exception_type = Column(Integer, nullable=False)
+    service_id = Column(String, primary_key=True, index=True)
+    date = Column(String, primary_key=True, index=True)
+    exception_type = Column(Integer, nullable=True)

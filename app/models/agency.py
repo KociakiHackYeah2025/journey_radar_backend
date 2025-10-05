@@ -5,8 +5,8 @@ from app.database import Base
 class Agency(Base):
     __tablename__ = "agencies"
 
-    agency_id = Column(Integer, primary_key=True, index=True)
-    agency_name = Column(String, nullable=False)
+    agency_id = Column(String, primary_key=True, index=True)
+    agency_name = Column(String, nullable=True)
     agency_url = Column(String, nullable=True)
     agency_timezone = Column(String, nullable=True)
     agency_lang = Column(String, nullable=True)

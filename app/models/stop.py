@@ -5,7 +5,7 @@ from app.database import Base
 class Stop(Base):
     __tablename__ = "stops"
 
-    stop_id = Column(Integer, primary_key=True, index=True)
+    stop_id = Column(String, primary_key=True, index=True)
     stop_code = Column(String, nullable=True)
     stop_name = Column(String, nullable=True)
     stop_desc = Column(String, nullable=True)
