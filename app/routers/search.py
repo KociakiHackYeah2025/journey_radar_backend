@@ -1,8 +1,3 @@
-@router.get("/search_history_top")
-def search_history_top(db: Session = Depends(get_db)):
-    top_history = db.query(SearchHistory).order_by(SearchHistory.count.desc()).limit(100).all()
-    return [{"point_name": h.point_name, "count": h.count} for h in top_history]
-
 from fastapi import APIRouter, Query
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -16,6 +11,12 @@ from app.models.search_history import SearchHistory
 from typing import List
 
 router = APIRouter()
+
+@router.get("/search_history_top")
+def search_history_top(db: Session = Depends(get_db)):
+    top_history = db.query(SearchHistory).order_by(SearchHistory.count.desc()).limit(100).all()
+    return [{"point_name": h.point_name, "count": h.count} for h in top_history]
+
 
 @router.get("/search_autocomplete")
 def search_autocomplete(
