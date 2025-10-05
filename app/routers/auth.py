@@ -101,3 +101,14 @@ def check_session(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "message": "Token is valid"
     }
+
+
+# Informacje o koncie użytkownika
+@router.get("/me", tags=["Auth"])
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "points": getattr(current_user, "points", None),
+        "created_at": getattr(current_user, "created_at", None),
+    }
