@@ -25,7 +25,7 @@ start_scheduler()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, FastAPI!"}
+    return {"message": "Kociaki HackYeah 2025 - Journey Radar Backend"}
 
 if __name__ == "__main__":
     import uvicorn
