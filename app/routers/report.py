@@ -1,4 +1,4 @@
-
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -65,14 +65,34 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     return {"id": new_report.id, "user_id": new_report.user_id, "stop_id": new_report.stop_id, "boarded": new_report.boarded, "created_at": new_report.created_at, "updated_at": new_report.updated_at}
 
 
-@router.post("/report/{report_id}/rate")
-def rate_report(report_id: int, db: Session = Depends(get_db)):
+@router.post("/report/{report_id}/board")
+def board_report(report_id: int, db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    user = db.query(User).filter(User.id == report.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.points += 1
+    report.boarded = True
+    report.boarded_time = datetime.utcnow()
     db.commit()
-    return {"user_id": user.id, "points": user.points}
+    db.refresh(report)
+    return {"id": report.id, "boarded": report.boarded, "boarded_time": report.boarded_time}
+
+
+@router.get("/report/{report_id}")
+def report_info(report_id: int, db: Session = Depends(get_db)):
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    minutes = None
+    if report.boarded_time:
+        delta = report.boarded_time - report.created_at
+        minutes = int(delta.total_seconds() // 60)
+    return {
+        "id": report.id,
+        "user_id": report.user_id,
+        "stop_id": report.stop_id,
+        "boarded": report.boarded,
+        "created_at": report.created_at,
+        "boarded_time": report.boarded_time,
+        "minutes_to_boarded": minutes
+    }
+    

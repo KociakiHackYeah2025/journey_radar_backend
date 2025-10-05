@@ -12,5 +12,3 @@ apscheduler
 pytz
 jose
 requests
-apscheduler
-pytz

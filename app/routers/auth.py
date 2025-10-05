@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user_schema import UserCreate, UserOut
 from app.utils import hash_password, verify_password
 from app.utils.token import create_access_token
 from jose import JWTError, jwt
@@ -14,8 +14,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
 # Rejestracja
-@router.post("/register", response_model=UserOut)
+@router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
@@ -27,7 +31,13 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+    access_token = create_access_token(data={"sub": new_user.email})
+    return {
+        "id": new_user.id,
+        "email": new_user.email,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 # Logowanie
 @router.post("/login")

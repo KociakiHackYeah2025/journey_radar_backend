@@ -12,6 +12,7 @@ class Report(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     boarded = Column(Boolean, default=False, nullable=False)
+    boarded_time = Column(DateTime, nullable=True)
     likes = Column(Integer, default=0, nullable=False)
     dislikes = Column(Integer, default=0, nullable=False)
 
