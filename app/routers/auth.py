@@ -7,6 +7,7 @@ from app.schemas.user_schema import UserCreate, UserOut
 from app.utils import hash_password, verify_password
 from app.utils.token import create_access_token
 from jose import JWTError, jwt
+from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -49,8 +50,14 @@ def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
-        if email is None:
+        exp_timestamp = payload.get("exp")
+        if email is None or exp_timestamp is None:
             raise HTTPException(status_code=401, detail="Invalid token")
+
+        # Sprawdzenie wygaśnięcia tokenu
+        if datetime.utcnow().timestamp() > exp_timestamp:
+            raise HTTPException(status_code=401, detail="Token has expired")
+
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
@@ -72,3 +79,15 @@ def delete_current_user(
     db.delete(user)
     db.commit()
     return {"message": "User deleted successfully"}
+
+# Sprawdzenie ważności tokenu / sesji
+@router.get("/check_session")
+def check_session(current_user: User = Depends(get_current_user)):
+    """
+    Sprawdza ważność tokenu i zwraca informacje o zalogowanym użytkowniku.
+    Jeśli token jest nieważny lub użytkownik nie istnieje, zwraca 401.
+    """
+    return {
+        "email": current_user.email,
+        "message": "Token is valid"
+    }
