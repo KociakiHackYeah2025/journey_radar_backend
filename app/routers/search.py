@@ -72,71 +72,83 @@ def search(
 ):
     if datetime_query is None:
         datetime_query = datetime.now()
-    # Update search history for 'from_stop'
-    from_history = db.query(SearchHistory).filter(SearchHistory.point_name == from_stop).first()
-    if from_history:
-        from_history.count += 1
-    else:
-        from_history = SearchHistory(point_name=from_stop, count=1)
-        db.add(from_history)
-    # Update search history for 'to_stop'
-    to_history = db.query(SearchHistory).filter(SearchHistory.point_name == to_stop).first()
-    if to_history:
-        to_history.count += 1
-    else:
-        to_history = SearchHistory(point_name=to_stop, count=1)
-        db.add(to_history)
-    db.commit()
-    from_stop_ids = [from_stop]
-    to_stop_ids = [to_stop]
 
-    departure_time_str = datetime_query.time().strftime("%H:%M:%S")
+    # Zapisz wyszukiwanie do historii
+    for stop in [from_stop, to_stop]:
+        history = db.query(SearchHistory).filter(SearchHistory.point_name == stop).first()
+        if history:
+            history.count += 1
+        else:
+            db.add(SearchHistory(point_name=stop, count=1))
+    db.commit()
+
+    # Pobierz stop_id dla from_stop i to_stop (może być przekazane jako nazwa lub id)
+    from_stop_obj = db.query(Stop).filter((Stop.stop_id == from_stop) | (Stop.stop_name == from_stop)).first()
+    to_stop_obj = db.query(Stop).filter((Stop.stop_id == to_stop) | (Stop.stop_name == to_stop)).first()
+    if not from_stop_obj or not to_stop_obj:
+        return {"error": "Nie znaleziono przystanku"}
+    from_stop_id = from_stop_obj.stop_id
+    to_stop_id = to_stop_obj.stop_id
+
+    departure_time_str = datetime_query.strftime("%H:%M:%S")
+    date_str = datetime_query.strftime("%Y%m%d")
+
+    # Pobierz stop_times dla przystanku początkowego po zadanym czasie
     stop_times_from = db.query(StopTime).filter(
-        StopTime.stop_id.in_(from_stop_ids),
+        StopTime.stop_id == from_stop_id,
         StopTime.departure_time >= departure_time_str
     ).all()
     trip_ids = [st.trip_id for st in stop_times_from]
+    if not trip_ids:
+        return []
+
+    # Pobierz stop_times dla przystanku docelowego w tych samych tripach
     stop_times_to = db.query(StopTime).filter(
-        StopTime.stop_id.in_(to_stop_ids),
+        StopTime.stop_id == to_stop_id,
         StopTime.trip_id.in_(trip_ids)
     ).all()
 
+    # Filtruj tylko te tripy, gdzie przystanek początkowy jest przed docelowym
     valid_trip_ids = set()
     for st_from in stop_times_from:
         for st_to in stop_times_to:
             if st_from.trip_id == st_to.trip_id and st_from.stop_sequence < st_to.stop_sequence:
                 valid_trip_ids.add(st_from.trip_id)
 
+    if not valid_trip_ids:
+        return []
+
     trips = db.query(Trip).filter(Trip.trip_id.in_(valid_trip_ids)).all()
     results = []
-    date_str = datetime_query.date().strftime("%Y-%m-%d")
     for trip in trips:
+        # Sprawdź czy kurs jest aktywny w danym dniu
         calendar_date = db.query(CalendarDate).filter(
             CalendarDate.service_id == trip.service_id,
             CalendarDate.date == date_str
         ).first()
-        if calendar_date:
-            st_from = next((st for st in stop_times_from if st.trip_id == trip.trip_id), None)
-            st_to = next((st for st in stop_times_to if st.trip_id == trip.trip_id), None)
-            results.append({
-                "trip_id": trip.trip_id,
-                "route_id": trip.route_id,
-                "date": calendar_date.date,
-                "from_stop": {
-                    "stop_id": from_stop,
-                    "departure_time": st_from.departure_time if st_from else None,
-                    "arrival_time": st_from.arrival_time if st_from else None,
-                    "stop_sequence": st_from.stop_sequence if st_from else None
-                },
-                "to_stop": {
-                    "stop_id": to_stop,
-                    "departure_time": st_to.departure_time if st_to else None,
-                    "arrival_time": st_to.arrival_time if st_to else None,
-                    "stop_sequence": st_to.stop_sequence if st_to else None
-                }
-            })
-    def time_key(item):
-        t = item["from_stop"]["departure_time"]
-        return t if t is not None else "99:99:99"
-    results_sorted = sorted(results, key=time_key)
+        if not calendar_date:
+            continue
+        st_from = next((st for st in stop_times_from if st.trip_id == trip.trip_id), None)
+        st_to = next((st for st in stop_times_to if st.trip_id == trip.trip_id), None)
+        results.append({
+            "trip_id": trip.trip_id,
+            "route_id": trip.route_id,
+            "date": calendar_date.date,
+            "from_stop": {
+                "stop_id": from_stop_id,
+                "stop_name": from_stop_obj.stop_name,
+                "departure_time": st_from.departure_time if st_from else None,
+                "arrival_time": st_from.arrival_time if st_from else None,
+                "stop_sequence": st_from.stop_sequence if st_from else None
+            },
+            "to_stop": {
+                "stop_id": to_stop_id,
+                "stop_name": to_stop_obj.stop_name,
+                "departure_time": st_to.departure_time if st_to else None,
+                "arrival_time": st_to.arrival_time if st_to else None,
+                "stop_sequence": st_to.stop_sequence if st_to else None
+            }
+        })
+    # Sortuj po czasie odjazdu
+    results_sorted = sorted(results, key=lambda x: x["from_stop"]["departure_time"] or "99:99:99")
     return results_sorted
