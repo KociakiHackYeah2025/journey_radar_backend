@@ -11,7 +11,9 @@ from .stop_time import StopTime
 from .calendar_date import CalendarDate
 from .shape import Shape
 from .transfer import Transfer
+
 from .feed_info import FeedInfo
+from .report import Report
 
 __all__ = [
     "User",
@@ -24,5 +26,6 @@ __all__ = [
     "CalendarDate",
     "Shape",
     "Transfer",
-    "FeedInfo"
+    "FeedInfo",
+    "Report"
 ]
