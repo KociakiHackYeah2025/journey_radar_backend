@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(tags=["Report"])
 
 class ReportCreate(BaseModel):
     user_id: int
@@ -20,7 +20,7 @@ class ReportCreate(BaseModel):
 class RateReportRequest(BaseModel):
     helpful: bool
 
-@router.post("/report/{report_id}/rate")
+@router.post("/report/{report_id}/rate", tags=["Report"])
 def rate_report(report_id: int, rate: RateReportRequest, db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
@@ -43,7 +43,7 @@ def rate_report(report_id: int, rate: RateReportRequest, db: Session = Depends(g
     }
 
 
-@router.post("/report")
+@router.post("/report", tags=["Report"])
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     # Optionally validate user and stop existence
     user = db.query(User).filter(User.id == report.user_id).first()
@@ -65,7 +65,7 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     return {"id": new_report.id, "user_id": new_report.user_id, "stop_id": new_report.stop_id, "boarded": new_report.boarded, "created_at": new_report.created_at, "updated_at": new_report.updated_at}
 
 
-@router.post("/report/{report_id}/board")
+@router.post("/report/{report_id}/board", tags=["Report"])
 def board_report(report_id: int, db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
@@ -77,7 +77,7 @@ def board_report(report_id: int, db: Session = Depends(get_db)):
     return {"id": report.id, "boarded": report.boarded, "boarded_time": report.boarded_time}
 
 
-@router.get("/report/{report_id}")
+@router.get("/report/{report_id}", tags=["Report"])
 def report_info(report_id: int, db: Session = Depends(get_db)):
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:

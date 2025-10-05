@@ -5,9 +5,9 @@ from app.models.trip import Trip
 from app.models.report import Report
 from app.models.route import Route
 
-router = APIRouter()
+router = APIRouter(tags=["Route"])
 
-@router.get("/route/{route_id}")
+@router.get("/route/{route_id}", tags=["Route"])
 def get_route_info(route_id: str, db: Session = Depends(get_db)):
     route = db.query(Route).filter(Route.route_id == route_id).first()
     if not route:
@@ -55,7 +55,7 @@ def get_route_info(route_id: str, db: Session = Depends(get_db)):
         "stops": stops_data
     }
 
-@router.get("/route/{route_id}/delay")
+@router.get("/route/{route_id}/delay", tags=["Route"])
 def route_delay(route_id: str, db: Session = Depends(get_db)):
     # Pobierz wszystkie trip_id dla danej linii
     trips = db.query(Trip).filter(Trip.route_id == route_id).all()

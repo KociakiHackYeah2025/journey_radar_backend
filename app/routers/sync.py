@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from app.database import synchronization
 
-router = APIRouter(prefix="/sync", tags=["sync"])
+router = APIRouter(prefix="/sync", tags=["Sync"])
 
-@router.post("/run")
+@router.post("/run", tags=["Sync"])
 def run_synchronization():
     """
     Endpoint do ręcznego wywołania synchronizacji.

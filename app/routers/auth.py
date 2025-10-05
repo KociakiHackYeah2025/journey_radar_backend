@@ -9,7 +9,7 @@ from app.utils.token import create_access_token
 from jose import JWTError, jwt
 from datetime import datetime
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
     password: str
 
 # Rejestracja
-@router.post("/register")
+@router.post("/register", tags=["Auth"])
 def register(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
@@ -40,7 +40,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     }
 
 # Logowanie
-@router.post("/login")
+@router.post("/login", tags=["Auth"])
 def login(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
@@ -77,7 +77,7 @@ def get_current_user(
     return user
 
 # Usuwanie zalogowanego użytkownika
-@router.delete("/delete", status_code=204)
+@router.delete("/delete", status_code=204, tags=["Auth"])
 def delete_current_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -91,7 +91,7 @@ def delete_current_user(
     return {"message": "User deleted successfully"}
 
 # Sprawdzenie ważności tokenu / sesji
-@router.get("/check_session")
+@router.get("/check_session", tags=["Auth"])
 def check_session(current_user: User = Depends(get_current_user)):
     """
     Sprawdza ważność tokenu i zwraca informacje o zalogowanym użytkowniku.

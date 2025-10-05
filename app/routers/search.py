@@ -8,6 +8,8 @@ from app.models.stop_time import StopTime
 from app.models.calendar_date import CalendarDate
 from app.models.trip import Trip
 from app.models.search_history import SearchHistory
+from app.models.route import Route
+from app.models.agency import Agency
 
 from fastapi import APIRouter, Query
 from datetime import datetime
@@ -21,14 +23,14 @@ from app.models.trip import Trip
 from app.models.search_history import SearchHistory
 from typing import List
 
-router = APIRouter()
+router = APIRouter(tags=["Search"])
 
-@router.get("/search_history_top")
+@router.get("/search_history_top", tags=["Search"])
 def search_history_top(db: Session = Depends(get_db)):
     top_history = db.query(SearchHistory).order_by(SearchHistory.count.desc()).limit(100).all()
     return [{"point_name": h.point_name, "count": h.count} for h in top_history]
 
-@router.get("/search_autocomplete")
+@router.get("/search_autocomplete", tags=["Search"])
 def search_autocomplete(
     query: str,
     db: Session = Depends(get_db)
@@ -63,7 +65,7 @@ def search_autocomplete(
         })
     return results
 
-@router.get("/search")
+@router.get("/search", tags=["Search"])
 def search(
     from_stop: str = Query(..., alias="from_stop_id"),
     to_stop: str = Query(..., alias="to_stop_id"),
