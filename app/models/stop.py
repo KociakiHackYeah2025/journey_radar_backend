@@ -20,3 +20,4 @@ class Stop(Base):
     stop_times = relationship("StopTime", back_populates="stop")
     transfers_from = relationship("Transfer", foreign_keys="Transfer.from_stop_id", back_populates="from_stop")
     transfers_to = relationship("Transfer", foreign_keys="Transfer.to_stop_id", back_populates="to_stop")
+    reports = relationship("Report", back_populates="stop")
